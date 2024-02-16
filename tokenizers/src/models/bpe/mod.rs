@@ -7,6 +7,7 @@ pub mod trainer;
 mod word;
 
 type Pair = (u32, u32);
+type PairStrings = (String, String);
 
 /// Errors that can be encountered while using or constructing a `BPE` model.
 #[derive(thiserror::Error, Debug)]

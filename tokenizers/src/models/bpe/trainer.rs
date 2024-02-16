@@ -1,6 +1,6 @@
 #![allow(clippy::map_entry)]
 
-use super::{Pair, WithFirstLastIterator, Word, BPE};
+use super::{Pair, PairStrings, WithFirstLastIterator, Word, BPE};
 use crate::parallelism::*;
 use crate::tokenizer::{AddedToken, Result, Trainer};
 use crate::utils::progress::{ProgressBar, ProgressStyle};
@@ -11,6 +11,7 @@ use std::collections::{BinaryHeap, HashMap, HashSet};
 #[derive(Debug, Eq)]
 struct Merge {
     pair: Pair,
+    pairStrings: PairStrings,
     count: u64,
     pos: HashSet<usize>,
 }
@@ -29,8 +30,10 @@ impl Ord for Merge {
         if self.count != other.count {
             self.count.cmp(&other.count)
         } else {
-            // Here we want ascending order
-            other.pair.cmp(&self.pair)
+            // Here we want descending order
+            // (i.e., break ties in count by taking the
+            // lexicographically larger item)
+            self.pairStrings.cmp(&other.pairStrings)
         }
     }
 }
@@ -470,6 +473,7 @@ impl BpeTrainer {
             if count > 0 {
                 queue.push(Merge {
                     pair,
+                    pairStrings: (id_to_word[pair.0 as usize].clone(), id_to_word[pair.1 as usize].clone()),
                     count: count as u64,
                     pos,
                 });
@@ -573,6 +577,7 @@ impl BpeTrainer {
                 if count > 0 {
                     queue.push(Merge {
                         pair,
+                        pairStrings: (id_to_word[pair.0 as usize].clone(), id_to_word[pair.1 as usize].clone()),
                         count: count as u64,
                         pos,
                     });
